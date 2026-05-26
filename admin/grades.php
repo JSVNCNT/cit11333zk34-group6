@@ -3,6 +3,19 @@
 require 'auth.php';
 require '../db.php';
 
+// AJAX endpoint to fetch fresh subjects
+if (isset($_GET['get_subjects'])) {
+    header('Content-Type: application/json');
+    $query = "SELECT id, subject_code, subject_name FROM subjects ORDER BY subject_name ASC";
+    $result = mysqli_query($conn, $query);
+    $subjects = [];
+    while($row = mysqli_fetch_assoc($result)) {
+        $subjects[] = $row;
+    }
+    echo json_encode($subjects);
+    exit;
+}
+
 if (isset($_GET['delete'])) {
 
     $delete_id = $_GET['delete'];
@@ -377,18 +390,27 @@ Delete
                         <label class="form-label">
                             Subject
                         </label>
-                        <select
-                        class="form-select"
-                        name="subject_id"
-                        id="edit_subject_id"
-                        required>
-                            <option value="">— Select Subject —</option>
-                            <?php foreach($subjects as $subject): ?>
-                            <option value="<?= $subject['id'] ?>">
-                                <?= htmlspecialchars($subject['subject_code']) ?> - <?= htmlspecialchars($subject['subject_name']) ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="d-flex gap-2">
+                            <select
+                            class="form-select"
+                            name="subject_id"
+                            id="edit_subject_id"
+                            required>
+                                <option value="">— Select Subject —</option>
+                                <?php foreach($subjects as $subject): ?>
+                                <option value="<?= $subject['id'] ?>">
+                                    <?= htmlspecialchars($subject['subject_code']) ?> - <?= htmlspecialchars($subject['subject_name']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button
+                            type="button"
+                            class="btn btn-outline-primary"
+                            onclick="refreshSubjectsList()"
+                            title="Refresh subjects list">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -446,6 +468,68 @@ Delete
 </div>
 
 <script>
+// Fetch fresh subjects list from database
+async function refreshSubjectsList() {
+    const btn = event?.target?.closest('button') || document.querySelector('button[onclick="refreshSubjectsList()"]');
+    const originalHTML = btn?.innerHTML || '';
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    }
+    
+    try {
+        const response = await fetch('grades.php?get_subjects=1');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const subjects = await response.json();
+        
+        const select = document.getElementById('edit_subject_id');
+        const currentValue = select.value;
+        
+        // Clear existing options except the first one
+        select.innerHTML = '<option value="">— Select Subject —</option>';
+        
+        // Add fresh subjects
+        subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject.id;
+            option.textContent = subject.subject_code + ' - ' + subject.subject_name;
+            select.appendChild(option);
+        });
+        
+        // Restore previous selection if available
+        if (currentValue) {
+            select.value = currentValue;
+        }
+        
+        // Show success message
+        if (btn) {
+            btn.innerHTML = '<i class="bi bi-check-circle"></i>';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }, 1500);
+        }
+    } catch (error) {
+        console.error('Error refreshing subjects:', error);
+        
+        // Restore button
+        if (btn) {
+            btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i>';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }, 2000);
+        }
+        
+        alert('⚠️ Could not refresh subjects. Please reload the page or try again.');
+    }
+}
+
 function openEditGradeModal(id, subjectId, prelim, midterm, finalExam) {
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_subject_id').value = subjectId;
@@ -453,6 +537,9 @@ function openEditGradeModal(id, subjectId, prelim, midterm, finalExam) {
     document.getElementById('edit_midterm').value = midterm;
     document.getElementById('edit_final_exam').value = finalExam;
 }
+
+// Refresh subjects list when modal opens
+document.getElementById('editGradeModal')?.addEventListener('show.bs.modal', refreshSubjectsList);
 </script>
 
 <?php include 'footer.php'; ?>
