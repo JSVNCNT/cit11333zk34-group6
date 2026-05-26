@@ -1,34 +1,22 @@
 <?php
 require 'auth.php';
-
-if (!isset($_SESSION['subjects'])) {
-    $_SESSION['subjects'] = [
-        ['code' => 'CIT11333Z', 'name' => 'Web Development', 'teacher' => 'Prof. Reyes', 'units' => 3, 'schedule' => 'MWF 10:00-11:00'],
-        ['code' => 'MATH101', 'name' => 'Calculus I', 'teacher' => 'Dr. Santos', 'units' => 4, 'schedule' => 'TTH 8:00-9:30'],
-        ['code' => 'ENG102', 'name' => 'Technical Writing', 'teacher' => 'Ms. Cruz', 'units' => 3, 'schedule' => 'MWF 1:00-2:00'],
-        ['code' => 'CS201', 'name' => 'Data Structures', 'teacher' => 'Engr. Lee', 'units' => 3, 'schedule' => 'TTH 10:00-11:30'],
-        ['code' => 'PHYS101', 'name' => 'Physics I', 'teacher' => 'Dr. Garcia', 'units' => 4, 'schedule' => 'MWF 2:00-3:30']
-    ];
-}
+require '../db.php';
 
 $success_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $code = $_POST['code'] ?? '';
     $name = $_POST['name'] ?? '';
-    $teacher = $_POST['teacher'] ?? '';
     $units = (int)($_POST['units'] ?? 0);
-    $schedule = $_POST['schedule'] ?? '';
     
-    if ($code && $name && $teacher && $units > 0 && $schedule) {
-        $_SESSION['subjects'][] = [
-            'code' => $code,
-            'name' => $name,
-            'teacher' => $teacher,
-            'units' => $units,
-            'schedule' => $schedule
-        ];
-        
+    if ($code && $name && $units > 0) {
+        $insert = "
+            INSERT INTO subjects (subject_code, subject_name, units)
+            VALUES ('$code', '$name', '$units')
+        ";
+
+        mysqli_query($conn, $insert);
+
         $_SESSION['flash'] = 'Subject added successfully!';
         header('Location: subjects.php');
         exit;
@@ -40,7 +28,14 @@ if (isset($_SESSION['flash'])) {
     unset($_SESSION['flash']);
 }
 
-$subjects       = $_SESSION['subjects'];
+$subjects_query = "SELECT * FROM subjects ORDER BY id ASC";
+$subjects_result = mysqli_query($conn, $subjects_query);
+$subjects = [];
+
+while ($row = mysqli_fetch_assoc($subjects_result)) {
+    $subjects[] = $row;
+}
+
 $total_subjects = count($subjects);
 $total_units    = array_sum(array_column($subjects, 'units')); 
 
@@ -86,10 +81,6 @@ include 'header.php';
                         <input type="text" id="name" name="name" placeholder="e.g. Statistics and Probability" required>
                     </div>
                     <div class="form-group">
-                        <label for="teacher">Teacher</label>
-                        <input type="text" id="teacher" name="teacher" placeholder="e.g. Ms. Cruz" required>
-                    </div>
-                    <div class="form-group">
                         <label for="units">Units</label>
                         <select id="units" name="units" required>
                             <option value="">— Select —</option>
@@ -98,10 +89,6 @@ include 'header.php';
                             <option value="3">3 units</option>
                             <option value="4">4 units</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="schedule">Schedule</label>
-                        <input type="text" id="schedule" name="schedule" placeholder="e.g. MWF 7:30–8:30" required>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit"><i class="bi bi-plus-square"></i> Add Subject</button>
@@ -119,15 +106,13 @@ include 'header.php';
                     <th>#</th>
                     <th>Code</th>
                     <th>Subject Name</th>
-                    <th>Teacher</th>
                     <th>Units</th>
-                    <th>Schedule</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($total_subjects === 0): ?>
                 <tr>
-                    <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                    <td colspan="4" style="text-align:center; padding:24px; color:var(--text-muted);">
                         No subjects yet. Use the form above to add one.
                     </td>
                 </tr>
@@ -136,11 +121,9 @@ include 'header.php';
                 <?php foreach ($subjects as $i => $subject): ?>
                 <tr>
                     <td class="id-cell"><?= $i + 1 ?></td>
-                    <td class="code-cell"><?= htmlspecialchars($subject['code']) ?></td>
-                    <td><?= htmlspecialchars($subject['name']) ?></td>
-                    <td><?= htmlspecialchars($subject['teacher']) ?></td>
+                    <td class="code-cell"><?= htmlspecialchars($subject['subject_code']) ?></td>
+                    <td><?= htmlspecialchars($subject['subject_name']) ?></td>
                     <td class="id-cell"><?= $subject['units'] ?> units</td>
-                    <td class="schedule-tag"><?= htmlspecialchars($subject['schedule']) ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
