@@ -154,6 +154,10 @@
 
 <header class="topbar">
 
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
+
     <div class="topbar-left">
 
         <div class="page-title">

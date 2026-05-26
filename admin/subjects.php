@@ -61,7 +61,15 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
 $offset = ($page - 1) * $limit;
 
-$total_query = mysqli_query($conn, "SELECT COUNT(*) as total FROM subjects");
+$search = $_GET['search'] ?? '';
+
+$search_sql = '';
+
+if ($search !== '') {
+    $search_sql = " WHERE subject_code LIKE '%$search%' OR subject_name LIKE '%$search%' ";
+}
+
+$total_query = mysqli_query($conn, "SELECT COUNT(*) as total FROM subjects $search_sql");
 
 $total_row = mysqli_fetch_assoc($total_query);
 
@@ -72,6 +80,7 @@ $total_pages = ceil($total_subjects / $limit);
 $query = "
 SELECT *
 FROM subjects
+$search_sql
 ORDER BY id ASC
 LIMIT $offset, $limit
 ";
@@ -100,24 +109,25 @@ include 'header.php';
 
 <?php if(isset($_GET['success'])): ?>
 
-<div class="alert-success">
-
-<?php
-
-if($_GET['success'] === 'added') {
-    echo "✅ Subject added successfully!";
-}
-
-if($_GET['success'] === 'updated') {
-    echo "✅ Subject updated successfully!";
-}
-
-if($_GET['success'] === 'deleted') {
-    echo "✅ Subject deleted successfully!";
-}
-
-?>
-
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999;">
+    <div class="toast show align-items-center text-bg-success border-0">
+        <div class="d-flex">
+            <div class="toast-body">
+                <?php
+                if($_GET['success'] === 'added') {
+                    echo "✅ Subject added successfully!";
+                }
+                if($_GET['success'] === 'updated') {
+                    echo "✅ Subject updated successfully!";
+                }
+                if($_GET['success'] === 'deleted') {
+                    echo "✅ Subject deleted successfully!";
+                }
+                ?>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
 </div>
 
 <?php endif; ?>
@@ -135,6 +145,18 @@ if($_GET['success'] === 'deleted') {
     </div>
 
 </div>
+
+<form method="GET" class="mb-3 d-flex gap-2 flex-wrap">
+    <input type="text" name="search" class="form-control" placeholder="Search subjects..." value="<?= htmlspecialchars($search) ?>" style="max-width:300px;">
+    <button class="btn btn-primary">
+        <i class="bi bi-search"></i>
+    </button>
+    <?php if($search): ?>
+    <a href="subjects.php" class="btn btn-secondary">
+        Reset
+    </a>
+    <?php endif; ?>
+</form>
 
 <div class="form-card">
 
@@ -301,22 +323,17 @@ if($_GET['success'] === 'deleted') {
 
 </div>
 
-<div class="mt-4 d-flex gap-2 flex-wrap">
-
-<?php for($i = 1; $i <= $total_pages; $i++): ?>
-
-<a
-href="subjects.php?page=<?= $i ?>"
-class="btn btn-primary <?= $page == $i ? '' : 'opacity-50' ?>"
->
-
-<?= $i ?>
-
-</a>
-
-<?php endfor; ?>
-
-</div>
+<nav class="mt-4">
+    <ul class="pagination">
+        <?php for($i = 1; $i <= $total_pages; $i++): ?>
+        <li class="page-item <?= $page == $i ? 'active' : '' ?>">
+            <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>">
+                <?= $i ?>
+            </a>
+        </li>
+        <?php endfor; ?>
+    </ul>
+</nav>
 
 <div class="modal fade" id="editModal" tabindex="-1">
 
