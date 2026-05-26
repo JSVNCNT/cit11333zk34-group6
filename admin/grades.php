@@ -99,39 +99,86 @@ $result = mysqli_query($conn, $query);
 
 $grades = [];
 
+$total_grade = 0;
+$highest = 0;
+$lowest = 100;
+
 while($row = mysqli_fetch_assoc($result)) {
+
     $grades[] = $row;
+
+    $total_grade += $row['final_grade'];
+
+    if($row['final_grade'] > $highest) {
+        $highest = $row['final_grade'];
+    }
+
+    if($row['final_grade'] < $lowest) {
+        $lowest = $row['final_grade'];
+    }
 }
 
+$count = count($grades);
+
+$avg_grade = $count > 0
+? round($total_grade / $count, 1)
+: 0;
+
 $active_page = 'grades';
-$page_title = 'Grades';
+$page_title = 'My Grades';
 $page_icon = '<i class="bi bi-trophy-fill"></i>';
 
 include 'header.php';
 
 ?>
 
+<div class="stats-row">
+
+<div class="stat-card">
+<div class="stat-label">Avg Grade</div>
+<div class="stat-value blue"><?= $avg_grade ?></div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Highest</div>
+<div class="stat-value green"><?= $highest ?></div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Lowest</div>
+<div class="stat-value red"><?= $lowest ?></div>
+</div>
+
+</div>
+
 <div class="table-card">
 
 <div class="table-card-header">
 
 <div class="table-card-title">
-Grade Records
+Grade Report – 1st Semester
+</div>
+
+<div class="record-count">
+<?= $total_records ?> records
 </div>
 
 </div>
+
+<div class="table-responsive">
 
 <table class="data-table">
 
 <thead>
 
 <tr>
-<th>ID</th>
+<th>#</th>
 <th>Subject</th>
 <th>Prelim</th>
 <th>Midterm</th>
 <th>Final Exam</th>
 <th>Final Grade</th>
+<th>Remarks</th>
 <th>Actions</th>
 </tr>
 
@@ -143,9 +190,13 @@ Grade Records
 
 <tr>
 
-<td><?= $g['id'] ?></td>
+<td class="id-cell">
+<?= $g['id'] ?>
+</td>
 
-<td><?= htmlspecialchars($g['subject_name']) ?></td>
+<td>
+<?= htmlspecialchars($g['subject_name']) ?>
+</td>
 
 <td><?= $g['prelim'] ?></td>
 
@@ -153,31 +204,67 @@ Grade Records
 
 <td><?= $g['final_exam'] ?></td>
 
-<td><?= $g['final_grade'] ?></td>
+<td>
+
+<?php
+
+$fg = $g['final_grade'];
+
+$gc = $fg >= 90
+? 'grade-high'
+: ($fg >= 85
+? 'grade-mid'
+: 'grade-low');
+
+?>
+
+<span class="<?= $gc ?>">
+<?= $fg ?>
+</span>
+
+</td>
 
 <td>
 
+<?php if($fg >= 75): ?>
+
+<span class="badge badge-active">
+Passed
+</span>
+
+<?php else: ?>
+
+<span class="badge badge-probation">
+Failed
+</span>
+
+<?php endif; ?>
+
+</td>
+
+<td>
+
+<div class="d-flex gap-2 flex-wrap">
+
 <button
-class="btn btn-warning btn-sm"
-data-bs-toggle="modal"
-data-bs-target="#editModal"
-onclick="openEditModal(
-'<?= $g['id'] ?>',
-'<?= $g['subject_id'] ?>',
-'<?= $g['prelim'] ?>',
-'<?= $g['midterm'] ?>',
-'<?= $g['final_exam'] ?>'
-)">
+class="btn btn-warning btn-sm">
+
+<i class="bi bi-pencil-square"></i>
 Edit
+
 </button>
 
 <a
 href="grades.php?delete=<?= $g['id'] ?>"
 class="btn btn-danger btn-sm"
-onclick="return confirm('Delete this grade?')"
->
+onclick="return confirm('Delete this grade?')">
+
+<i class="bi bi-trash"></i>
 Delete
+
 </a>
+
+</div>
 
 </td>
 
@@ -191,7 +278,9 @@ Delete
 
 </div>
 
-<div class="mt-4 d-flex gap-2">
+</div>
+
+<div class="mt-4 d-flex gap-2 flex-wrap">
 
 <?php for($i = 1; $i <= $total_pages; $i++): ?>
 
@@ -199,7 +288,9 @@ Delete
 href="grades.php?page=<?= $i ?>"
 class="btn btn-primary <?= $page == $i ? '' : 'opacity-50' ?>"
 >
+
 <?= $i ?>
+
 </a>
 
 <?php endfor; ?>

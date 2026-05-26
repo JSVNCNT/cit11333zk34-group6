@@ -84,6 +84,12 @@ while($row = mysqli_fetch_assoc($result)) {
     $subjects[] = $row;
 }
 
+$total_units = 0;
+
+foreach($subjects as $subject) {
+    $total_units += $subject['units'];
+}
+
 $active_page = 'subjects';
 $page_title = 'Subjects';
 $page_icon = '<i class="bi bi-journal-text"></i>';
@@ -116,147 +122,186 @@ if($_GET['success'] === 'deleted') {
 
 <?php endif; ?>
 
+<div class="stats-row">
+
+    <div class="stat-card">
+        <div class="stat-label">Total Subjects</div>
+        <div class="stat-value blue"><?= $total_subjects ?></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Total Units</div>
+        <div class="stat-value green"><?= $total_units ?></div>
+    </div>
+
+</div>
+
 <div class="form-card">
 
-<div class="form-card-header">
+    <div class="form-card-header">
+        <div class="form-card-title">
+            Add New Subject
+        </div>
+    </div>
 
-<div class="form-card-title">
-Add Subject
-</div>
+    <div class="form-body">
 
-</div>
+        <form method="POST">
 
-<div class="form-body">
+            <div class="form-grid">
 
-<form method="POST">
+                <div class="form-group">
 
-<div class="form-grid">
+                    <label>Subject Code</label>
 
-<div class="form-group">
+                    <input
+                    type="text"
+                    name="code"
+                    placeholder="e.g. MATH102"
+                    required>
 
-<label>Subject Code</label>
+                </div>
 
-<input type="text" name="code" required>
+                <div class="form-group">
 
-</div>
+                    <label>Subject Name</label>
 
-<div class="form-group">
+                    <input
+                    type="text"
+                    name="name"
+                    placeholder="e.g. Statistics and Probability"
+                    required>
 
-<label>Subject Name</label>
+                </div>
 
-<input type="text" name="name" required>
+                <div class="form-group">
 
-</div>
+                    <label>Units</label>
 
-<div class="form-group">
+                    <select name="units" required>
 
-<label>Units</label>
+                        <option value="">— Select —</option>
+                        <option value="1">1 unit</option>
+                        <option value="2">2 units</option>
+                        <option value="3">3 units</option>
+                        <option value="4">4 units</option>
 
-<select name="units" required>
+                    </select>
 
-<option value="">Select</option>
-<option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
+                </div>
 
-</select>
+            </div>
 
-</div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-square"></i>
+                Add Subject
+            </button>
 
-</div>
+        </form>
 
-<button type="submit" class="btn btn-primary">
-<i class="bi bi-plus-square"></i>
-Add Subject
-</button>
-
-</form>
-
-</div>
+    </div>
 
 </div>
 
 <div class="table-card">
 
-<div class="table-card-header">
+    <div class="table-card-header">
 
-<div class="table-card-title">
-Subject Records
+        <div class="table-card-title">
+            Enrolled Subjects
+        </div>
+
+        <div class="record-count">
+            <?= $total_subjects ?> records
+        </div>
+
+    </div>
+
+    <div class="table-responsive">
+
+    <table class="data-table">
+
+        <thead>
+
+            <tr>
+                <th>#</th>
+                <th>Code</th>
+                <th>Subject Name</th>
+                <th>Units</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        <?php foreach($subjects as $subject): ?>
+
+        <tr>
+
+            <td class="id-cell">
+                <?= $subject['id'] ?>
+            </td>
+
+            <td class="code-cell">
+                <?= htmlspecialchars($subject['subject_code']) ?>
+            </td>
+
+            <td>
+                <?= htmlspecialchars($subject['subject_name']) ?>
+            </td>
+
+            <td class="id-cell">
+                <?= $subject['units'] ?> units
+            </td>
+
+            <td>
+
+                <div class="d-flex gap-2 flex-wrap">
+
+                    <button
+                    class="btn btn-warning btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editModal"
+                    onclick="openEditModal(
+                    '<?= $subject['id'] ?>',
+                    '<?= htmlspecialchars($subject['subject_code']) ?>',
+                    '<?= htmlspecialchars($subject['subject_name']) ?>',
+                    '<?= $subject['units'] ?>'
+                    )">
+
+                    <i class="bi bi-pencil-square"></i>
+                    Edit
+
+                    </button>
+
+                    <a
+                    href="subjects.php?delete=<?= $subject['id'] ?>"
+                    class="btn btn-danger btn-sm"
+                    onclick="return confirm('Delete this subject?')">
+
+                    <i class="bi bi-trash"></i>
+                    Delete
+
+                    </a>
+
+                </div>
+
+            </td>
+
+        </tr>
+
+        <?php endforeach; ?>
+
+        </tbody>
+
+    </table>
+
+    </div>
+
 </div>
 
-</div>
-
-<table class="data-table">
-
-<thead>
-
-<tr>
-<th>ID</th>
-<th>Code</th>
-<th>Subject Name</th>
-<th>Units</th>
-<th>Actions</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-<?php foreach($subjects as $subject): ?>
-
-<tr>
-
-<td><?= $subject['id'] ?></td>
-
-<td class="code-cell">
-<?= htmlspecialchars($subject['subject_code']) ?>
-</td>
-
-<td>
-<?= htmlspecialchars($subject['subject_name']) ?>
-</td>
-
-<td>
-<?= $subject['units'] ?>
-</td>
-
-<td>
-
-<button
-class="btn btn-warning btn-sm"
-data-bs-toggle="modal"
-data-bs-target="#editModal"
-onclick="openEditModal(
-'<?= $subject['id'] ?>',
-'<?= htmlspecialchars($subject['subject_code']) ?>',
-'<?= htmlspecialchars($subject['subject_name']) ?>',
-'<?= $subject['units'] ?>'
-)">
-Edit
-</button>
-
-<a
-href="subjects.php?delete=<?= $subject['id'] ?>"
-class="btn btn-danger btn-sm"
-onclick="return confirm('Delete this subject?')"
->
-Delete
-</a>
-
-</td>
-
-</tr>
-
-<?php endforeach; ?>
-
-</tbody>
-
-</table>
-
-</div>
-
-<div class="mt-4 d-flex gap-2">
+<div class="mt-4 d-flex gap-2 flex-wrap">
 
 <?php for($i = 1; $i <= $total_pages; $i++): ?>
 
@@ -264,7 +309,9 @@ Delete
 href="subjects.php?page=<?= $i ?>"
 class="btn btn-primary <?= $page == $i ? '' : 'opacity-50' ?>"
 >
+
 <?= $i ?>
+
 </a>
 
 <?php endfor; ?>
@@ -295,7 +342,10 @@ data-bs-dismiss="modal">
 
 <form method="POST">
 
-<input type="hidden" name="edit_id" id="edit_id">
+<input
+type="hidden"
+name="edit_id"
+id="edit_id">
 
 <div class="mb-3">
 
@@ -351,7 +401,9 @@ required>
 <button
 type="submit"
 class="btn btn-primary">
+
 Update Subject
+
 </button>
 
 </form>
