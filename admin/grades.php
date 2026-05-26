@@ -78,22 +78,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $final_grade = round(($prelim + $midterm + $final_exam) / 3);
 
-    $insert = "
-    INSERT INTO grades
-    (subject_id, prelim, midterm, final_exam, final_grade)
+    $check_query = "SELECT id FROM grades WHERE subject_id = '$subject_id' LIMIT 1";
+    $check_result = mysqli_query($conn, $check_query);
 
-    VALUES
+    if (mysqli_num_rows($check_result) > 0) {
+        $update = "
+        UPDATE grades
+        SET prelim = '$prelim',
+            midterm = '$midterm',
+            final_exam = '$final_exam',
+            final_grade = '$final_grade'
+        WHERE subject_id = '$subject_id'
+        ";
 
-    (
-        '$subject_id',
-        '$prelim',
-        '$midterm',
-        '$final_exam',
-        '$final_grade'
-    )
-    ";
+        mysqli_query($conn, $update);
+    } else {
+        $insert = "
+        INSERT INTO grades
+        (subject_id, prelim, midterm, final_exam, final_grade)
 
-    mysqli_query($conn, $insert);
+        VALUES
+
+        (
+            '$subject_id',
+            '$prelim',
+            '$midterm',
+            '$final_exam',
+            '$final_grade'
+        )
+        ";
+
+        mysqli_query($conn, $insert);
+    }
 
     header("Location: grades.php?success=1");
     exit;

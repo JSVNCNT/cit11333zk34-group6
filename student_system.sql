@@ -1,6 +1,10 @@
-CREATE DATABASE student_system;
+CREATE DATABASE IF NOT EXISTS student_system;
 
 USE student_system;
+ 
+DROP TABLE IF EXISTS grades;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -24,6 +28,7 @@ CREATE TABLE grades (
     midterm INT NOT NULL,
     final_exam INT NOT NULL,
     final_grade INT NOT NULL,
+    UNIQUE KEY unique_subject_grade (subject_id),
     FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
 
