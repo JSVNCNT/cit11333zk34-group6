@@ -3,8 +3,6 @@
 require 'auth.php';
 require '../db.php';
 
-$success_message = '';
-
 if (isset($_GET['delete'])) {
 
     $delete_id = $_GET['delete'];
@@ -71,25 +69,19 @@ $total_subjects = $total_row['total'];
 
 $total_pages = ceil($total_subjects / $limit);
 
-$subjects_query = "
+$query = "
 SELECT *
 FROM subjects
 ORDER BY id ASC
 LIMIT $offset, $limit
 ";
 
-$subjects_result = mysqli_query($conn, $subjects_query);
+$result = mysqli_query($conn, $query);
 
 $subjects = [];
 
-while($row = mysqli_fetch_assoc($subjects_result)) {
+while($row = mysqli_fetch_assoc($result)) {
     $subjects[] = $row;
-}
-
-$total_units = 0;
-
-foreach($subjects as $subject) {
-    $total_units += $subject['units'];
 }
 
 $active_page = 'subjects';
@@ -104,303 +96,271 @@ include 'header.php';
 
 <div class="alert-success">
 
-    <?php
+<?php
 
-    if($_GET['success'] === 'added') {
-        echo "✅ Subject added successfully!";
-    }
+if($_GET['success'] === 'added') {
+    echo "✅ Subject added successfully!";
+}
 
-    if($_GET['success'] === 'updated') {
-        echo "✅ Subject updated successfully!";
-    }
+if($_GET['success'] === 'updated') {
+    echo "✅ Subject updated successfully!";
+}
 
-    if($_GET['success'] === 'deleted') {
-        echo "✅ Subject deleted successfully!";
-    }
+if($_GET['success'] === 'deleted') {
+    echo "✅ Subject deleted successfully!";
+}
 
-    ?>
+?>
 
 </div>
 
 <?php endif; ?>
 
-<div class="stats-row">
+<div class="form-card">
 
-    <div class="stat-card">
-        <div class="stat-label">Total Subjects</div>
-        <div class="stat-value blue"><?= $total_subjects ?></div>
-    </div>
+<div class="form-card-header">
 
-    <div class="stat-card">
-        <div class="stat-label">Units This Page</div>
-        <div class="stat-value green"><?= $total_units ?></div>
-    </div>
+<div class="form-card-title">
+Add Subject
+</div>
 
 </div>
 
-<div class="form-card">
+<div class="form-body">
 
-    <div class="form-card-header">
-        <div class="form-card-title">
-            Add New Subject
-        </div>
-    </div>
+<form method="POST">
 
-    <div class="form-body">
+<div class="form-grid">
 
-        <form method="POST">
+<div class="form-group">
 
-            <div class="form-grid">
+<label>Subject Code</label>
 
-                <div class="form-group">
+<input type="text" name="code" required>
 
-                    <label>Subject Code</label>
+</div>
 
-                    <input
-                        type="text"
-                        name="code"
-                        required
-                    >
+<div class="form-group">
 
-                </div>
+<label>Subject Name</label>
 
-                <div class="form-group">
+<input type="text" name="name" required>
 
-                    <label>Subject Name</label>
+</div>
 
-                    <input
-                        type="text"
-                        name="name"
-                        required
-                    >
+<div class="form-group">
 
-                </div>
+<label>Units</label>
 
-                <div class="form-group">
+<select name="units" required>
 
-                    <label>Units</label>
+<option value="">Select</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
 
-                    <select name="units" required>
-                        <option value="">Select</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                    </select>
+</select>
 
-                </div>
+</div>
 
-            </div>
+</div>
 
-            <button type="submit" class="btn-submit">
-                <i class="bi bi-plus-square"></i>
-                Add Subject
-            </button>
+<button type="submit" class="btn btn-primary">
+<i class="bi bi-plus-square"></i>
+Add Subject
+</button>
 
-        </form>
+</form>
 
-    </div>
+</div>
 
 </div>
 
 <div class="table-card">
 
-    <div class="table-card-header">
+<div class="table-card-header">
 
-        <div class="table-card-title">
-            Enrolled Subjects
-        </div>
-
-        <div class="record-count">
-            <?= $total_subjects ?> records
-        </div>
-
-    </div>
-
-    <table class="data-table">
-
-        <thead>
-
-            <tr>
-                <th>ID</th>
-                <th>Code</th>
-                <th>Subject Name</th>
-                <th>Units</th>
-                <th>Actions</th>
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-        <?php foreach($subjects as $subject): ?>
-
-            <tr>
-
-                <td class="id-cell">
-                    <?= $subject['id'] ?>
-                </td>
-
-                <td class="code-cell">
-                    <?= htmlspecialchars($subject['subject_code']) ?>
-                </td>
-
-                <td>
-                    <?= htmlspecialchars($subject['subject_name']) ?>
-                </td>
-
-                <td class="id-cell">
-                    <?= $subject['units'] ?>
-                </td>
-
-                <td>
-
-                    <button
-                        class="btn-submit"
-                        style="padding:5px 10px;"
-                        onclick="openEditModal(
-                            '<?= $subject['id'] ?>',
-                            '<?= htmlspecialchars($subject['subject_code']) ?>',
-                            '<?= htmlspecialchars($subject['subject_name']) ?>',
-                            '<?= $subject['units'] ?>'
-                        )"
-                    >
-                        Edit
-                    </button>
-
-                    <a
-                        href="subjects.php?delete=<?= $subject['id'] ?>"
-                        onclick="return confirm('Delete this subject?')"
-                        class="btn-submit"
-                        style="
-                            padding:5px 10px;
-                            background:var(--accent4);
-                            text-decoration:none;
-                        "
-                    >
-                        Delete
-                    </a>
-
-                </td>
-
-            </tr>
-
-        <?php endforeach; ?>
-
-        </tbody>
-
-    </table>
+<div class="table-card-title">
+Subject Records
+</div>
 
 </div>
 
-<div style="margin-top:20px; display:flex; gap:10px;">
+<table class="data-table">
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Code</th>
+<th>Subject Name</th>
+<th>Units</th>
+<th>Actions</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<?php foreach($subjects as $subject): ?>
+
+<tr>
+
+<td><?= $subject['id'] ?></td>
+
+<td class="code-cell">
+<?= htmlspecialchars($subject['subject_code']) ?>
+</td>
+
+<td>
+<?= htmlspecialchars($subject['subject_name']) ?>
+</td>
+
+<td>
+<?= $subject['units'] ?>
+</td>
+
+<td>
+
+<button
+class="btn btn-warning btn-sm"
+data-bs-toggle="modal"
+data-bs-target="#editModal"
+onclick="openEditModal(
+'<?= $subject['id'] ?>',
+'<?= htmlspecialchars($subject['subject_code']) ?>',
+'<?= htmlspecialchars($subject['subject_name']) ?>',
+'<?= $subject['units'] ?>'
+)">
+Edit
+</button>
+
+<a
+href="subjects.php?delete=<?= $subject['id'] ?>"
+class="btn btn-danger btn-sm"
+onclick="return confirm('Delete this subject?')"
+>
+Delete
+</a>
+
+</td>
+
+</tr>
+
+<?php endforeach; ?>
+
+</tbody>
+
+</table>
+
+</div>
+
+<div class="mt-4 d-flex gap-2">
 
 <?php for($i = 1; $i <= $total_pages; $i++): ?>
 
-    <a
-        href="subjects.php?page=<?= $i ?>"
-        class="btn-submit"
-        style="
-            text-decoration:none;
-            <?= $page == $i ? '' : 'opacity:.6;' ?>
-        "
-    >
-        <?= $i ?>
-    </a>
+<a
+href="subjects.php?page=<?= $i ?>"
+class="btn btn-primary <?= $page == $i ? '' : 'opacity-50' ?>"
+>
+<?= $i ?>
+</a>
 
 <?php endfor; ?>
 
 </div>
 
-<div
-    id="editModal"
-    style="
-        display:none;
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,.6);
-        z-index:999;
-        align-items:center;
-        justify-content:center;
-    "
->
+<div class="modal fade" id="editModal" tabindex="-1">
 
-    <div
-        style="
-            background:var(--surface);
-            padding:24px;
-            border-radius:10px;
-            width:400px;
-        "
-    >
+<div class="modal-dialog">
 
-        <h2 style="margin-bottom:20px;">
-            Edit Subject
-        </h2>
+<div class="modal-content bg-dark text-light">
 
-        <form method="POST">
+<div class="modal-header border-secondary">
 
-            <input type="hidden" name="edit_id" id="edit_id">
+<h5 class="modal-title">
+Edit Subject
+</h5>
 
-            <div class="form-group">
+<button
+type="button"
+class="btn-close btn-close-white"
+data-bs-dismiss="modal">
+</button>
 
-                <label>Subject Code</label>
+</div>
 
-                <input
-                    type="text"
-                    name="code"
-                    id="edit_code"
-                    required
-                >
+<div class="modal-body">
 
-            </div>
+<form method="POST">
 
-            <div class="form-group">
+<input type="hidden" name="edit_id" id="edit_id">
 
-                <label>Subject Name</label>
+<div class="mb-3">
 
-                <input
-                    type="text"
-                    name="name"
-                    id="edit_name"
-                    required
-                >
+<label class="form-label">
+Subject Code
+</label>
 
-            </div>
+<input
+type="text"
+class="form-control"
+name="code"
+id="edit_code"
+required>
 
-            <div class="form-group">
+</div>
 
-                <label>Units</label>
+<div class="mb-3">
 
-                <select name="units" id="edit_units" required>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                </select>
+<label class="form-label">
+Subject Name
+</label>
 
-            </div>
+<input
+type="text"
+class="form-control"
+name="name"
+id="edit_name"
+required>
 
-            <div style="margin-top:20px; display:flex; gap:10px;">
+</div>
 
-                <button type="submit" class="btn-submit">
-                    Update
-                </button>
+<div class="mb-3">
 
-                <button
-                    type="button"
-                    class="btn-submit"
-                    style="background:gray;"
-                    onclick="closeModal()"
-                >
-                    Cancel
-                </button>
+<label class="form-label">
+Units
+</label>
 
-            </div>
+<select
+class="form-select"
+name="units"
+id="edit_units"
+required>
 
-        </form>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
 
-    </div>
+</select>
+
+</div>
+
+<button
+type="submit"
+class="btn btn-primary">
+Update Subject
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
 
 </div>
 
@@ -408,16 +368,11 @@ include 'header.php';
 
 function openEditModal(id, code, name, units) {
 
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_code').value = code;
-    document.getElementById('edit_name').value = name;
-    document.getElementById('edit_units').value = units;
+document.getElementById('edit_id').value = id;
+document.getElementById('edit_code').value = code;
+document.getElementById('edit_name').value = name;
+document.getElementById('edit_units').value = units;
 
-    document.getElementById('editModal').style.display = 'flex';
-}
-
-function closeModal() {
-    document.getElementById('editModal').style.display = 'none';
 }
 
 </script>
