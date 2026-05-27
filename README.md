@@ -101,7 +101,7 @@ https://github.com/JSVNCNT/cit11333zk34-group6
 - **@JSVNCNT** — Jose Vincent III Bayoguing BSIT -K34
 - **@kwenbitoca-ux** — Kwenie Franz Besario BSIT -K34
 - **@youreonyourown** — John Edmar Tamon BSIT -K34
-- **@member4** — Member 4 Full Name
+- **@Junel Gillesania** —Junel Gillesania
 - **@member5** — Member 5 Full Name
 - **@member6** — Member 6 Full Name
 
