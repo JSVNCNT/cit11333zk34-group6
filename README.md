@@ -1,6 +1,6 @@
 # Student Management System
 
-A responsive PHP and MySQL-based Student Management System developed as a final project for CIT11333ZK34.
+A responsive PHP and MySQL-based Student Management System developed as a final project for CIT11333Z-K34.
 
 ## Features
 
@@ -101,7 +101,7 @@ https://github.com/JSVNCNT/cit11333zk34-group6
 - **@JSVNCNT** — Jose Vincent III Bayoguing BSIT -K34
 - **@kwenbitoca-ux** — Kwenie Franz Besario BSIT -K34
 - **@youreonyourown** — John Edmar Tamon BSIT -K34
-- **@Junel Gillesania** —Junel Gillesania
+- **@Junel10-2005** —Junel Gillesania
 - **@member5** — Member 5 Full Name
 - **@member6** — Member 6 Full Name
 
