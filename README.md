@@ -99,7 +99,7 @@ https://github.com/JSVNCNT/cit11333zk34-group6
 ### Group 6 — CIT11333ZK34 Final Project
 
 - **@JSVNCNT** — Jose Vincent III Bayoguing
-- **@member2** — Member 2 Full Name
+- **@kwenbitoca-ux** — Kwenie Franz Besario
 - **@member3** — Member 3 Full Name
 - **@member4** — Member 4 Full Name
 - **@member5** — Member 5 Full Name
